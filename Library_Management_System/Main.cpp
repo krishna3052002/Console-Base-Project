@@ -24,10 +24,10 @@ class Member
 public:
     string name;
     string department;
-    int id;
-    int phn;
+    string id;
+    string phn;
     queue<string> borrow;
-    Member(string name, string department, int id, int phn)
+    Member(string name, string department, string id, string phn)
     {
         this->name = name;
         this->department = department;
@@ -50,11 +50,11 @@ void writeBookListToFile(vector<Book> &myList, string fileName)
 
     for (auto &book : myList)
     {
-        file << book.title << " " << book.author << " ";
+        file << book.title << "," << book.author << ",";
         stack<string> tempStack = book.availability;
         while (!tempStack.empty())
         {
-            file << tempStack.top() << " ";
+            file << tempStack.top() << ",";
             tempStack.pop();
         }
         file << '\n';
@@ -76,13 +76,15 @@ void readBookListFromFile(vector<Book> &myList, string filename)
     while (getline(file, line))
     {
         stringstream ss(line);
+
         string title, author;
-        ss >> title >> author;
+        getline(ss, title, ',');  // Read until the next quote
+        getline(ss, author, ','); // Read until the next quote
         Book book(title, author);
 
         string availability;
         stack<string> tempStack;
-        while (ss >> availability)
+        while (getline(ss, availability, ','))
         {
             tempStack.push(availability);
         }
@@ -99,6 +101,29 @@ void readBookListFromFile(vector<Book> &myList, string filename)
     file.close();
 }
 // for member
+void writeMemberListToFile(list<Member> &myList, string fileName)
+{
+    ofstream file(fileName, ios::out); // Use ios::out to truncate the file and write afresh
+    if (!file)
+    {
+        cout << "Error opening file" << endl;
+        return;
+    }
+
+    for (auto &member : myList)
+    {
+        file << member.name << "," << member.department << "," << member.id << "," << member.phn << ",";
+        queue<string> tempQueue = member.borrow;
+        while (!tempQueue.empty())
+        {
+            file << tempQueue.front() << ",";
+            tempQueue.pop();
+        }
+        file << '\n';
+    }
+
+    file.close();
+}
 void readMemberListFromFile(list<Member> &myList, string filename)
 {
     ifstream file(filename);
@@ -112,15 +137,20 @@ void readMemberListFromFile(list<Member> &myList, string filename)
     while (getline(file, line))
     {
         stringstream ss(line);
-        string name, department;
-        ss >> name >> department;
-        int id, phn;
-        ss >> id >> phn;
-        Member member(name, department, id, phn);
+        string name, department, id_str, phn_str;
+        // ss >> name >> department;
+        getline(ss, name, ',');
+        getline(ss, department, ',');
+        getline(ss, id_str, ',');
+        getline(ss, phn_str, ',');
+
+        // cout<<id_str<<endl<<phn_str<<endl;
+
+        Member member(name, department, id_str, phn_str);
 
         string availability;
         queue<string> tempQueue;
-        while (ss >> availability)
+        while (getline(ss, availability, ','))
         {
             tempQueue.push(availability);
         }
@@ -136,40 +166,17 @@ void readMemberListFromFile(list<Member> &myList, string filename)
 
     file.close();
 }
-
-void writeMemberListToFile(list<Member> &myList, string fileName)
-{
-    ofstream file(fileName, ios::out); // Use ios::out to truncate the file and write afresh
-    if (!file)
-    {
-        cout << "Error opening file" << endl;
-        return;
-    }
-
-    for (auto &member : myList)
-    {
-        file << member.name << " " << member.department << " "<<member.id<<" "<<member.phn;
-        queue<string> tempQueue = member.borrow;
-        while (!tempQueue.empty())
-        {
-            file << tempQueue.front() << " ";
-            tempQueue.pop();
-        }
-        file << '\n';
-    }
-
-    file.close();
-}
 void add_book()
 {
     cout << "\t\t\t\t\t\t====================\n";
     cout << "\t\t\t\t\t\tAdd Book Information\n";
     cout << "\t\t\t\t\t\t====================\n";
     cout << "\n\t\t\t\t\tEnter Book Name: ";
+    cin.ignore();
     string name, writer;
-    cin >> name;
+    getline(cin, name);
     cout << "\t\t\t\t\tEnter Book Author: ";
-    cin >> writer;
+    getline(cin, writer);
 
     bool found = false;
     for (auto &book : Book_list)
@@ -205,7 +212,8 @@ void search_book()
     {
         cout << "\n\t\t\t\t\tPlease enter book title: ";
         string need;
-        cin >> need;
+        cin.ignore();
+        getline(cin, need);
 
         for (auto &book : Book_list)
         {
@@ -230,15 +238,16 @@ void addMember()
     cout << "\t\t\t\t\t\t====================\n";
     cout << "\n\t\t\t\t\tEnter Member Name: ";
     string name, department;
-    int id, phn;
-    cin >> name;
+    string id, phn;
+    cin.ignore();
+    getline(cin, name);
     cout << "\t\t\t\t\tEnter Member Department: ";
-    cin >> department;
+    getline(cin, department);
 
     cout << "\t\t\t\t\tEnter Member id: ";
-    cin >> id;
+    getline(cin, id);
     cout << "\t\t\t\t\tEnter Member Phone Number: ";
-    cin >> phn;
+    getline(cin, phn);
 
     Member newMember(name, department, id, phn);
 
@@ -251,7 +260,7 @@ void addMember()
 int main()
 {
     readBookListFromFile(Book_list, "book.txt");
-    readMemberListFromFile(Member_list,"member.txt");
+    readMemberListFromFile(Member_list, "member.txt");
     int ch = 0;
     while (ch != 6)
     {
@@ -282,7 +291,6 @@ int main()
             break;
         case 3:
             system("cls");
-            // Add member function (not implemented)
             addMember();
             getch();
             system("cls");
@@ -290,6 +298,7 @@ int main()
         case 4:
             system("cls");
             // Borrow book function (not implemented)
+            // Borrow_Book();
             getch();
             system("cls");
             break;
@@ -301,7 +310,7 @@ int main()
             break;
         case 6:
             writeBookListToFile(Book_list, "book.txt");
-            writeMemberListToFile(Member_list,"member.txt");
+            writeMemberListToFile(Member_list, "member.txt");
             cout << "Exiting the system. Goodbye!" << endl;
             break;
         default:
