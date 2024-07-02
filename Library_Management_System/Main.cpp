@@ -26,7 +26,7 @@ public:
     string department;
     string id;
     string phn;
-    queue<string> borrow;
+    queue<pair<string, string>> borrow;
     Member(string name, string department, string id, string phn)
     {
         this->name = name;
@@ -113,10 +113,10 @@ void writeMemberListToFile(list<Member> &myList, string fileName)
     for (auto &member : myList)
     {
         file << member.name << "," << member.department << "," << member.id << "," << member.phn << ",";
-        queue<string> tempQueue = member.borrow;
+        queue<pair<string, string>> tempQueue = member.borrow;
         while (!tempQueue.empty())
         {
-            file << tempQueue.front() << ",";
+            file << tempQueue.front().first << "-" << tempQueue.front().second << ",";
             tempQueue.pop();
         }
         file << '\n';
@@ -149,10 +149,14 @@ void readMemberListFromFile(list<Member> &myList, string filename)
         Member member(name, department, id_str, phn_str);
 
         string availability;
-        queue<string> tempQueue;
+        queue<pair<string, string>> tempQueue;
         while (getline(ss, availability, ','))
         {
-            tempQueue.push(availability);
+            stringstream ss2(availability);
+            string x, y;
+            getline(ss2, x, '-');
+            getline(ss2, y);
+            tempQueue.push({x, y});
         }
 
         while (!tempQueue.empty())
@@ -160,7 +164,6 @@ void readMemberListFromFile(list<Member> &myList, string filename)
             member.borrow.push(tempQueue.front());
             tempQueue.pop();
         }
-
         myList.push_back(member);
     }
 
@@ -256,7 +259,81 @@ void addMember()
     cout << "\t\t\t\t\t=======================\n";
     cout << "\t\t\t\t\tMember added Successfully\n";
 }
+void borrowBook()
+{
 
+    cout << "\t\t\t\t\t\t============\n";
+    cout << "\t\t\t\t\t\tBorrow Books\n";
+    cout << "\t\t\t\t\t\t============\n";
+
+    if (Book_list.empty())
+    {
+        cout << "\n\t\t\t\t\t=======================================\n";
+        cout << "\t\t\t\t\tThere are No books Available for search\n";
+        cout << "\t\t\t\t\t=======================================\n";
+    }
+    else
+    {
+        cout << "\n\t\t\t\t\tPlease enter book title: ";
+        string need;
+        cin.ignore();
+        getline(cin, need);
+        bool flag = false;
+        bool flag2 = false;
+        for (auto &book : Book_list)
+        {
+            if (book.title == need)
+            {
+                flag2 = true;
+                cout << "\t\t\t\t\tBook information:\n";
+                cout << "\t\t\t\t\t-----------------\n";
+                cout << "\t\t\t\t\tBook title: " << book.title << endl;
+                cout << "\t\t\t\t\tBook author: " << book.author << endl;
+                cout << "\t\t\t\t\tBook availability: " << (book.availability.empty() ? "Not available" : "Available") << endl;
+                cout << "\t\t\t\t\t---------------------------\n";
+                if (book.availability.empty())
+                {
+                    cout << "\t\t\t\t\tSorry, this book is not available in the library now\n";
+                }
+                else
+                {
+
+                    cout << "\t\t\t\t\tIf you want to borrow this book Please enter your ID:";
+                    string id, todaysDate;
+                    getline(cin, id);
+                    cout << "\t\t\t\t\tPlease enter todays date:";
+                    getline(cin, todaysDate);
+                    for (auto &member : Member_list)
+                    {
+                        if (member.id == id)
+                        {
+                            member.borrow.push({book.title, todaysDate});
+                            book.availability.pop();
+                            flag = true;
+                            break;
+                        }
+                    }
+                }
+
+                break;
+            }
+        }
+        if (flag2 == false)
+        {
+            cout << "\t\t\t\t\tSorry, this book is not available in the library\n";
+        }
+        if (flag == true)
+        {
+            cout << "\t\t\t\t\t==========================\n";
+            cout << "\t\t\t\t\tBook Borrowed Successfully\n";
+            cout << "\t\t\t\t\t==========================\n";
+        }
+    }
+    // if (search_book().second)
+    // {
+
+    // }
+}
 int main()
 {
     readBookListFromFile(Book_list, "book.txt");
@@ -298,7 +375,7 @@ int main()
         case 4:
             system("cls");
             // Borrow book function (not implemented)
-            // Borrow_Book();
+            borrowBook();
             getch();
             system("cls");
             break;
