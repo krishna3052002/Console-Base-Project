@@ -233,9 +233,9 @@ void search_book()
 }
 void addMember()
 {
-    cout << "\t\t\t\t\t\t====================\n";
+    cout << "\t\t\t\t\t\t======================\n";
     cout << "\t\t\t\t\t\tAdd Member Information\n";
-    cout << "\t\t\t\t\t\t====================\n";
+    cout << "\t\t\t\t\t\t======================\n";
     cout << "\n\t\t\t\t\tEnter Member Name: ";
     string name, department;
     string id, phn;
@@ -311,10 +311,10 @@ int main()
         case 6:
             writeBookListToFile(Book_list, "book.txt");
             writeMemberListToFile(Member_list, "member.txt");
-            cout << "Exiting the system. Goodbye!" << endl;
+            cout << "\t\t\t\t\t   Exiting the system. Goodbye!" << endl;
             break;
         default:
-            cout << "Invalid choice! Please enter a number between 1 and 6." << endl;
+            cout << "\t\t\t\t\t   Invalid choice! Please enter a number between 1 and 6." << endl;
             getch();
             system("cls");
             break;
