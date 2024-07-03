@@ -27,6 +27,7 @@ public:
     string id;
     string phn;
     queue<pair<string, string>> borrow;
+    int fin = 0;
     Member(string name, string department, string id, string phn)
     {
         this->name = name;
@@ -195,7 +196,7 @@ void add_book()
     if (!found)
     {
         Book newBook(name, writer);
-        newBook.availability.push("Available"); // Only the availability status, not the title itself
+        newBook.availability.push(newBook.title); // Only the availability status, not the title itself
         Book_list.push_back(newBook);
     }
 
@@ -334,21 +335,148 @@ void borrowBook()
 
     // }
 }
+void return_book()
+{
+    cout << "\t\t\t\t\t\t============\n";
+    cout << "\t\t\t\t\t\tReturn Books\n";
+    cout << "\t\t\t\t\t\t============\n";
+    cout << "\n\t\t\t\t\tPlease enter member id: ";
+    string id;
+    cin.ignore();
+    getline(cin, id);
+    cout << "\n\t\t\t\t\tPlease enter today's date (dd-mm-yyyy): ";
+    string current_date_str;
+    getline(cin, current_date_str);
+
+    // Function to convert date string to tm structure
+    auto str_to_tm = [](const string &date_str) -> tm
+    {
+        tm t = {};
+        stringstream ss(date_str);
+        ss >> get_time(&t, "%d-%m-%Y");
+        return t;
+    };
+
+    // Function to calculate the difference in days between two tm structures
+    auto days_diff = [](const tm &start, const tm &end) -> int
+    {
+        time_t start_time = mktime(const_cast<tm *>(&start));
+        time_t end_time = mktime(const_cast<tm *>(&end));
+        return difftime(end_time, start_time) / (60 * 60 * 24);
+    };
+
+    bool flag = false;
+    for (auto &member : Member_list)
+    {
+        if (member.id == id)
+        {
+            flag = true;
+            if (member.borrow.empty())
+            {
+                cout << "\t\t\t\t\t=================\n";
+                cout << "\t\t\t\t\tNo books Borrowed\n";
+                cout << "\t\t\t\t\t=================\n";
+            }
+            else
+            {
+                cout << "\t\t\t\t\tBorrowed Books:\n";
+                cout << "\t\t\t\t\t-----------------\n";
+                queue<pair<string, string>> tempQueue = member.borrow;
+                while (!tempQueue.empty())
+                {
+                    auto borrow_info = tempQueue.front();
+                    tempQueue.pop();
+
+                    tm borrow_date = str_to_tm(borrow_info.second);
+                    tm current_date = str_to_tm(current_date_str);
+                    int days = days_diff(borrow_date, current_date);
+                    int fine = 0;
+                    if (days > 5)
+                    {
+                        fine = (days - 5) * 10;
+                    }
+                    cout << "\t\t\t\t\tBook title: " << borrow_info.first << ", Borrow date: " << borrow_info.second << ", Fine: " << fine << " taka" << endl;
+                }
+                cout << "\t\t\t\t\t-----------------\n";
+                cout << "\t\t\t\t\tPlease enter the title of the book to return: ";
+                string book_title;
+                getline(cin, book_title);
+
+                queue<pair<string, string>> newQueue;
+                bool book_found = false;
+                while (!member.borrow.empty())
+                {
+                    auto borrow_info = member.borrow.front();
+                    member.borrow.pop();
+
+                    if (borrow_info.first == book_title && !book_found)
+                    {
+                        book_found = true;
+                        // Calculate fine if book is returned late
+                        tm borrow_date = str_to_tm(borrow_info.second);
+                        tm current_date = str_to_tm(current_date_str);
+                        int days = days_diff(borrow_date, current_date);
+                        if (days > 5)
+                        {
+                            int fine = (days - 5) * 10;
+                            member.fin += fine;
+                            cout << "\t\t\t\t\tYou have kept the book for " << days << " days.\n";
+                            cout << "\t\t\t\t\tFine: " << fine << " taka\n";
+                        }
+
+                        for (auto &book : Book_list)
+                        {
+                            if (book.title == book_title)
+                            {
+                                book.availability.push("Available");
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        newQueue.push(borrow_info);
+                    }
+                }
+
+                member.borrow = newQueue;
+
+                if (book_found)
+                {
+                    cout << "\t\t\t\t\t==========================\n";
+                    cout << "\t\t\t\t\tBook Returned Successfully\n";
+                    cout << "\t\t\t\t\t==========================\n";
+                }
+                else
+                {
+                    cout << "\t\t\t\t\tBook not found in your borrowed list.\n";
+                }
+            }
+            break;
+        }
+    }
+    if (!flag)
+    {
+        cout << "\t\t\t\t\tMember ID not found.\n";
+    }
+}
+
 int main()
 {
     readBookListFromFile(Book_list, "book.txt");
     readMemberListFromFile(Member_list, "member.txt");
     int ch = 0;
-    while (ch != 6)
+    while (ch != 7)
     {
         cout << "\t\t\t\t\t=====================================================\n\t\t\t\t\tLibrary management system of Sheikh Hasina University\n\t\t\t\t\t=====================================================\n"
              << endl;
         cout << "\t\t\t\t\t   For Adding New Books select____________________1" << endl;
         cout << "\t\t\t\t\t   For Searching Books select_____________________2" << endl;
         cout << "\t\t\t\t\t   For Adding new member select___________________3" << endl;
-        cout << "\t\t\t\t\t   For Borrowing Books____________________________4" << endl;
-        cout << "\t\t\t\t\t   For Member Reports_____________________________5" << endl;
-        cout << "\t\t\t\t\t   For Exit_______________________________________6" << endl;
+        cout << "\t\t\t\t\t   For Book issue_________________________________4" << endl;
+        cout << "\t\t\t\t\t   For Book return________________________________5" << endl;
+        cout << "\t\t\t\t\t   For Member Reports_____________________________6" << endl;
+        cout << "\t\t\t\t\t   For Exit_______________________________________7" << endl;
         cout << "\t\t\t\t\t   Enter your choice: ";
         cin >> ch;
 
@@ -374,18 +502,18 @@ int main()
             break;
         case 4:
             system("cls");
-            // Borrow book function (not implemented)
+
             borrowBook();
             getch();
             system("cls");
             break;
         case 5:
             system("cls");
-            // Member report function (not implemented)
+            return_book();
             getch();
             system("cls");
             break;
-        case 6:
+        case 7:
             writeBookListToFile(Book_list, "book.txt");
             writeMemberListToFile(Member_list, "member.txt");
             cout << "\t\t\t\t\t   Exiting the system. Goodbye!" << endl;
