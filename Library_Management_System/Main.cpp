@@ -295,19 +295,19 @@ void borrowBook()
                 if (book.availability.empty())
                 {
                     cout << "\t\t\t\t\tSorry, this book is not available in the library now\n";
+                    return;
                 }
                 else
                 {
-
-                    cout << "\t\t\t\t\tIf you want to borrow this book Please enter your ID:";
+                    cout << "\t\t\t\t\tIf You want to borrow this book Please enter your ID:";
                     string id, todaysDate;
                     getline(cin, id);
-                    cout << "\t\t\t\t\tPlease enter todays date:";
-                    getline(cin, todaysDate);
                     for (auto &member : Member_list)
                     {
                         if (member.id == id)
                         {
+                            cout << "\t\t\t\t\tPlease enter todays date(dd-mm-yy):";
+                            getline(cin, todaysDate);
                             member.borrow.push({book.title, todaysDate});
                             book.availability.pop();
                             flag = true;
@@ -322,6 +322,7 @@ void borrowBook()
         if (flag2 == false)
         {
             cout << "\t\t\t\t\tSorry, this book is not available in the library\n";
+            return;
         }
         if (flag == true)
         {
@@ -329,11 +330,13 @@ void borrowBook()
             cout << "\t\t\t\t\tBook Borrowed Successfully\n";
             cout << "\t\t\t\t\t==========================\n";
         }
+        else
+        {
+            cout << "\t\t\t\t\t============================\n";
+            cout << "\t\t\t\t\tMember is not registered yet\n";
+            cout << "\t\t\t\t\t============================\n";
+        }
     }
-    // if (search_book().second)
-    // {
-
-    // }
 }
 void return_book()
 {
@@ -460,6 +463,27 @@ void return_book()
         cout << "\t\t\t\t\tMember ID not found.\n";
     }
 }
+void bookList()
+{
+    if (Book_list.empty())
+    {
+        cout << "\n\t\t\t\t\t=====================================\n";
+        cout << "\t\t\t\t\tThere are No books Available for search\n";
+        cout << "\t\t\t\t\t=======================================\n";
+        return;
+    }
+    for (auto &book : Book_list)
+    {
+
+        cout << "\t\t\t\t\tBook information:\n";
+        cout << "\t\t\t\t\t-----------------\n";
+        cout << "\t\t\t\t\tBook title: " << book.title << endl;
+        cout << "\t\t\t\t\tBook author: " << book.author << endl;
+        cout << "\t\t\t\t\tBook availability: " << (book.availability.empty() ? "Not available" : "Available") << endl;
+        cout << "\t\t\t\t\t---------------------------\n";
+    }
+    return;
+}
 
 int main()
 {
@@ -475,7 +499,7 @@ int main()
         cout << "\t\t\t\t\t   For Adding new member select___________________3" << endl;
         cout << "\t\t\t\t\t   For Book issue_________________________________4" << endl;
         cout << "\t\t\t\t\t   For Book return________________________________5" << endl;
-        cout << "\t\t\t\t\t   For Member Reports_____________________________6" << endl;
+        cout << "\t\t\t\t\t   View Book List on library______________________6" << endl;
         cout << "\t\t\t\t\t   For Exit_______________________________________7" << endl;
         cout << "\t\t\t\t\t   Enter your choice: ";
         cin >> ch;
@@ -513,13 +537,18 @@ int main()
             getch();
             system("cls");
             break;
+        case 6:
+            system("cls");
+            bookList();
+            getch();
+            system("cls");
         case 7:
             writeBookListToFile(Book_list, "book.txt");
             writeMemberListToFile(Member_list, "member.txt");
             cout << "\t\t\t\t\t   Exiting the system. Goodbye!" << endl;
             break;
         default:
-            cout << "\t\t\t\t\t   Invalid choice! Please enter a number between 1 and 6." << endl;
+            cout << "\t\t\t\t\t   Invalid choice! Please enter a number between 1 and 7." << endl;
             getch();
             system("cls");
             break;
